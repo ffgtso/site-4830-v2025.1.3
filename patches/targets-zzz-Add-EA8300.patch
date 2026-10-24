@@ -12,7 +12,7 @@ diff --git a/targets/ipq40xx-generic b/targets/ipq40xx-generic
 index ad50609b..7cc28799 100644
 --- a/targets/ipq40xx-generic
 +++ b/targets/ipq40xx-generic
-@@ -95,6 +95,10 @@ device('gl.inet-gl-b1300', 'glinet_gl-b1300', {
+@@ -95,6 +95,11 @@ device('gl.inet-gl-b1300', 'glinet_gl-b1300', {
  
  device('linksys-ea6350v3', 'linksys_ea6350v3')
  
@@ -24,13 +24,6 @@ index ad50609b..7cc28799 100644
  device('linksys-mr8300-dallas', 'linksys_mr8300',{
  	packages = ATH10K_PACKAGES_IPQ40XX_QCA9888,
  	factory = false,
-@@ -184,6 +189,7 @@ device('plasma-cloud-pa2200', 'plasmacloud_pa2200', {
- -- ZTE
- 
- device('zte-mf289f', 'zte_mf289f', {
- 	broken = true,	-- case must be opened to install
- 	factory = false,
- })
 diff --git a/targets/ramips-mt7621 b/targets/ramips-mt7621
 index fdc3c3af..1ad03285 100644
 --- a/targets/ramips-mt7621
