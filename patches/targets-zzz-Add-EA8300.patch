@@ -12,7 +12,7 @@ diff --git a/targets/ipq40xx-generic b/targets/ipq40xx-generic
 index ad50609b..7cc28799 100644
 --- a/targets/ipq40xx-generic
 +++ b/targets/ipq40xx-generic
-@@ -95,6 +95,11 @@ device('gl.inet-gl-b1300', 'glinet_gl-b1300', {
+@@ -95,6 +95,10 @@ device('gl.inet-gl-b1300', 'glinet_gl-b1300', {
  
  device('linksys-ea6350v3', 'linksys_ea6350v3')
  
@@ -28,7 +28,6 @@ index ad50609b..7cc28799 100644
  -- ZTE
  
  device('zte-mf289f', 'zte_mf289f', {
-+	packages = ATH10K_PACKAGES_IPQ40XX_QCA9984,
  	broken = true,	-- case must be opened to install
  	factory = false,
  })
