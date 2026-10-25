@@ -1,6 +1,11 @@
 ifndef GLUON_TARGETS
 
 define GLUON_TARGETS :=
+ath79-generic
+x86-64
+ramips-mt7621
+ramips-mt76x8
+mediatek-filogic
 ath79-nand
 ath79-mikrotik
 bcm27xx-bcm2708
@@ -14,11 +19,6 @@ mediatek-mt7622
 mpc85xx-p1010
 mpc85xx-p1020
 rockchip-armv8
-ath79-generic
-x86-64
-ramips-mt7621
-ramips-mt76x8
-mediatek-filogic
 endef
 
 ifneq ($(BROKEN),0)
