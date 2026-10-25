@@ -27,6 +27,9 @@ SECRET_KEY_FILE ?= ${HOME}/build/secret-build
 ## Setup Build environment variables
 include release.mk
 include targets.mk
+$(info DEBUG VERSION: origin=$(origin VERSION) value='$(VERSION)')
+$(info DEBUG MAKEFLAGS: $(MAKEFLAGS))
+$(info DEBUG MAKEOVERRIDES: $(MAKEOVERRIDES))
 GLUON_BUILD_DIR := gluon-build
 
 export GLUON_SITEDIR := ..
