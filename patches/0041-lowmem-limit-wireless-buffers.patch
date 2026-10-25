@@ -1,0 +1,21 @@
+From: Site patches <site-patches@localhost>
+Date: Sun, 25 Oct 2026 00:00:00 +0200
+Subject: [PATCH] lowmem: limit-wireless-buffers
+
+Ported from Neanderfunk/gluon-patches-fixes, branch v2025.1.x.
+Source: https://github.com/Neanderfunk/gluon-patches-fixes/blob/v2025.1.x/lowmem/limit-wireless-buffers.patch
+Behaviour is preserved; Git file modes include required executable bits.
+
+diff --git a/package/gluon-core/files/etc/hotplug.d/ieee80211/01-gluon-core-codel-memusage b/package/gluon-core/files/etc/hotplug.d/ieee80211/01-gluon-core-codel-memusage
+index 7352c95..e0d7c83 100755
+--- a/package/gluon-core/files/etc/hotplug.d/ieee80211/01-gluon-core-codel-memusage
++++ b/package/gluon-core/files/etc/hotplug.d/ieee80211/01-gluon-core-codel-memusage
+@@ -6,7 +6,7 @@ if [ "${ACTION}" = 'add' ]; then
+ 	RAM=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+ 	if [ "$RAM" -le $((64*1024)) ]; then
+ 		LIMIT=524288
+-	elif [ "$RAM" -le $((128*1024)) ]; then
++	else
+ 		LIMIT=2097152
+ 	fi
+ 

@@ -1,0 +1,89 @@
+From: Site patches <site-patches@localhost>
+Date: Sun, 25 Oct 2026 00:00:00 +0200
+Subject: [PATCH] ffgt: replace Tunneldigger Lua watchdog with shell
+
+Install the module patch before Gluon make update.
+
+diff --git a/patches/packages/ffgt/0001-lowmem-tunneldigger-watchdog-shell.patch b/patches/packages/ffgt/0001-lowmem-tunneldigger-watchdog-shell.patch
+new file mode 100644
+--- /dev/null
++++ b/patches/packages/ffgt/0001-lowmem-tunneldigger-watchdog-shell.patch
+@@ -0,0 +1,78 @@
++From: Site patches <site-patches@localhost>
++Date: Sun, 25 Oct 2026 00:00:00 +0200
++Subject: [PATCH] ffgt-mesh-vpn-tunneldigger: use shell watchdog and selected uplink
++
++Adapted from Neanderfunk lowmem/tunneldigger-watchdog-shell.patch.
++Use the FFGT package name and its configured bind_interface, including
++wwan0 when cellular is enabled. Resolve logical interface names as in
++the init script; for an unbound client require an IPv4 default route.
++Preserve executable mode and remove the old Lua script.
++
++diff --git a/ffgt-mesh-vpn-tunneldigger/files/usr/bin/tunneldigger-watchdog b/ffgt-mesh-vpn-tunneldigger/files/usr/bin/tunneldigger-watchdog
++new file mode 100755
++index 0000000..71bfcf8
++--- /dev/null
+++++ b/ffgt-mesh-vpn-tunneldigger/files/usr/bin/tunneldigger-watchdog
++@@ -0,0 +1,25 @@
+++#!/bin/sh
+++# Restarts tunneldigger when the mesh VPN is enabled, but batman-adv has no
+++# originator via mesh-vpn. Same behaviour as the former Lua version, which
+++# loaded simple-uci every five minutes - on 64 MB devices straight from
+++# flash, because the page cache could not hold it.
+++
+++[ "$(uci -q get tunneldigger.mesh_vpn.enabled)" = 1 ] || exit 0
+++
+++# Follow the same bind-interface setting as the Tunneldigger init script.
+++# Without IPv4 on that uplink, restarting cannot restore broker connectivity.
+++bind_interface=$(uci -q get tunneldigger.mesh_vpn.bind_interface)
+++if [ -n "$bind_interface" ]; then
+++	. /lib/functions/network.sh
+++	network_get_device uplink_device "$bind_interface" || uplink_device=$bind_interface
+++	ip -4 addr show dev "$uplink_device" 2>/dev/null | grep -q 'inet ' || exit 0
+++else
+++	# No device binding: let IPv4 routing choose the uplink.
+++	ip -4 route show default 2>/dev/null | grep -q '^default ' || exit 0
+++fi
+++
+++if ! batctl o | grep 'mesh-vpn' >/dev/null; then
+++	logger -t tunneldigger-watchdog "No vpn-mesh neighbours found."
+++	logger -t tunneldigger-watchdog "Restarting Tunneldigger."
+++	/etc/init.d/tunneldigger restart
+++fi
++diff --git a/ffgt-mesh-vpn-tunneldigger/luasrc/usr/bin/tunneldigger-watchdog b/ffgt-mesh-vpn-tunneldigger/luasrc/usr/bin/tunneldigger-watchdog
++deleted file mode 100755
++index 0f1e560..0000000
++--- a/ffgt-mesh-vpn-tunneldigger/luasrc/usr/bin/tunneldigger-watchdog
+++++ /dev/null
++@@ -1,31 +0,0 @@
++-#!/usr/bin/lua
++-
++-local uci = require('simple-uci').cursor()
++-
++-local function restart_tunneldigger()
++-	os.execute('logger -t tunneldigger-watchdog "Restarting Tunneldigger."')
++-	os.execute('/etc/init.d/tunneldigger restart')
++-end
++-
++-local function has_mesh_vpn_neighbours()
++-	local handle = io.popen('batctl o', 'r')
++-	if not handle then
++-		return false
++-	end
++-	for line in handle:lines() do
++-		if line:find('mesh%-vpn') then
++-			handle:close()
++-			return true
++-		end
++-	end
++-	handle:close()
++-	return false
++-end
++-
++-if uci:get_bool('tunneldigger', 'mesh_vpn', 'enabled') then
++-	if not has_mesh_vpn_neighbours() then
++-		os.execute('logger -t tunneldigger-watchdog "No vpn-mesh neighbours found."')
++-		restart_tunneldigger()
++-		return
++-	end
++-end

@@ -1,0 +1,52 @@
+From: Site patches <site-patches@localhost>
+Date: Sun, 25 Oct 2026 00:00:00 +0200
+Subject: [PATCH] lowmem: sysctl-64m-min-free
+
+Ported from Neanderfunk/gluon-patches-fixes, branch v2025.1.x.
+Source: https://github.com/Neanderfunk/gluon-patches-fixes/blob/v2025.1.x/lowmem/sysctl-64m-min-free.patch
+Behaviour is preserved; Git file modes include required executable bits.
+
+diff --git a/package/gluon-core/files/lib/gluon/sysctl/memory-64m.conf b/package/gluon-core/files/lib/gluon/sysctl/memory-64m.conf
+new file mode 100644
+index 0000000..48cf4fe
+--- /dev/null
++++ b/package/gluon-core/files/lib/gluon/sysctl/memory-64m.conf
+@@ -0,0 +1,6 @@
++net.ipv4.ipfrag_low_thresh=393216
++net.ipv4.ipfrag_high_thresh=524288
++net.ipv6.ip6frag_low_thresh=393216
++net.ipv6.ip6frag_high_thresh=524288
++net.netfilter.nf_conntrack_frag6_low_thresh=393216
++net.netfilter.nf_conntrack_frag6_high_thresh=524288
+diff --git a/package/gluon-core/files/lib/gluon/sysctl/memory-64m.sysctl b/package/gluon-core/files/lib/gluon/sysctl/memory-64m.sysctl
+deleted file mode 100644
+index e8c9877..0000000
+--- a/package/gluon-core/files/lib/gluon/sysctl/memory-64m.sysctl
++++ /dev/null
+@@ -1,7 +0,0 @@
+-vm.min_free_kbytes="2048"
+-net.ipv4.ipfrag_low_thresh="393216"
+-net.ipv4.ipfrag_high_thresh="524288"
+-net.ipv6.ip6frag_low_thresh="393216"
+-net.ipv6.ip6frag_high_thresh="524288"
+-net.netfilter.nf_conntrack_frag6_low_thresh="393216"
+-net.netfilter.nf_conntrack_frag6_high_thresh="524288"
+diff --git a/package/gluon-core/luasrc/lib/gluon/upgrade/550-sysctl b/package/gluon-core/luasrc/lib/gluon/upgrade/550-sysctl
+index 5036eb4..7163d6d 100755
+--- a/package/gluon-core/luasrc/lib/gluon/upgrade/550-sysctl
++++ b/package/gluon-core/luasrc/lib/gluon/upgrade/550-sysctl
+@@ -3,11 +3,11 @@
+ local util = require "gluon.util"
+ local unistd = require "posix.unistd"
+ 
+-if util.get_mem_total() >= 64 * 1024 * 1024 then
++if util.get_mem_total() >= 64 * 1024 then
+ 	return
+ end
+ 
+ unistd.link(
+-	"/lib/gluon/sysctl/memory-64m.sysctl",
+-	"/etc/sysctl.d/35-gluon-memory-64m.sysctl",
++	"/lib/gluon/sysctl/memory-64m.conf",
++	"/etc/sysctl.d/35-gluon-memory-64m.conf",
+ 	true)

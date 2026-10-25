@@ -1,0 +1,81 @@
+From: Site patches <site-patches@localhost>
+Date: Sun, 25 Oct 2026 00:00:00 +0200
+Subject: [PATCH] lowmem: state-check-shell
+
+Ported from Neanderfunk/gluon-patches-fixes, branch v2025.1.x.
+Source: https://github.com/Neanderfunk/gluon-patches-fixes/blob/v2025.1.x/lowmem/state-check-shell.patch
+Behaviour is preserved; Git file modes include required executable bits.
+
+diff --git a/package/gluon-state-check/files/usr/sbin/gluon-state-check b/package/gluon-state-check/files/usr/sbin/gluon-state-check
+new file mode 100755
+index 0000000..93f31ad
+--- /dev/null
++++ b/package/gluon-state-check/files/usr/sbin/gluon-state-check
+@@ -0,0 +1,20 @@
++#!/bin/sh
++# Runs every executable in /lib/gluon/state/check.d/ and keeps one flag file
++# per check in /var/gluon/state/: created (or truncated) while the check
++# succeeds, removed otherwise. Same behaviour as the former Lua version,
++# which loaded the Lua runtime every minute - on 64 MB devices straight
++# from flash, because the page cache could not hold it.
++
++state_dir=/var/gluon/state
++check_dir=/lib/gluon/state/check.d
++
++[ -d "$state_dir" ] || mkdir -p "$state_dir"
++
++for check in "$check_dir"/*; do
++	[ -x "$check" ] || continue
++	if "$check"; then
++		: > "$state_dir/${check##*/}"
++	else
++		rm -f "$state_dir/${check##*/}"
++	fi
++done
+diff --git a/package/gluon-state-check/luasrc/usr/sbin/gluon-state-check b/package/gluon-state-check/luasrc/usr/sbin/gluon-state-check
+deleted file mode 100755
+index 04348f9..0000000
+--- a/package/gluon-state-check/luasrc/usr/sbin/gluon-state-check
++++ /dev/null
+@@ -1,41 +0,0 @@
+-#!/usr/bin/lua
+-
+-local util = require 'gluon.util'
+-local unistd = require 'posix.unistd'
+-
+-local state_dir = "/var/gluon/state/"
+-local check_dir = "/lib/gluon/state/check.d/"
+-
+-
+-local function set_flag(stateflag, state)
+-	if state then
+-		-- this does not modify atime
+-		local flaghandle = io.open(stateflag, "w")
+-		flaghandle:close()
+-	else
+-		os.remove(stateflag)
+-	end
+-end
+-
+-local function exec_check(checkpath)
+-	local checkname = string.sub(checkpath, #check_dir+1)
+-	local ret = os.execute(checkpath)
+-	local flagfile = state_dir..checkname
+-	set_flag(flagfile, 0==ret)
+-end
+-
+-local function run_executable_checks()
+-	for _, v in ipairs(util.glob(check_dir..'*')) do
+-		if unistd.access(v, 'x') then
+-			exec_check(v)
+-		end
+-	end
+-end
+-
+-
+--- ensure state path exists
+-if not unistd.access(state_dir) then
+-	os.execute("mkdir -p "..state_dir)
+-end
+-
+-run_executable_checks()
