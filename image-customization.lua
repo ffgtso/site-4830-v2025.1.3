@@ -96,7 +96,7 @@ if not device_class('tiny') and not tiny_like then
         'ffda-gluon-usteer',
         'ffda-node-whisperer',
         'gluon-pump',
---        'gluon-l2tp-batman-server',
+        'gluon-l2tp-batman-server',
     }
     -- usb is only default available for non-tiny devices
     include_usb = true
